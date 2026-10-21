@@ -22,7 +22,7 @@ FORMAT_SRCS += physical.c tests/physical.c capture.c capture.h share.c share.h s
 FORMAT_SRCS += tests/floating.c tests/dialogs.c tests/output-rules.c tests/hit.c tests/fullscreen.c tests/fullscreen-client.c
 FORMAT_SRCS += tests/workspaces.c tests/idle-inhibit.c tests/cursor.c tests/capture.c tests/capture-client.c tests/capture-result.h
 MODULES = workspace output cursor layout debug
-FORMAT_SRCS += $(MODULES:=.c) tests/compositor.h tests/layout.c
+FORMAT_SRCS += $(MODULES:=.c) tests/compositor.h tests/layout.c tests/output-destroy.c
 VWL_OBJS = $(MODULES:=.o) physical.o capture.o vwl.o plumbing.o util.o ipc.o share.o spawnrules.o tabhdr.o ext-foreign-toplevel-list-v1-protocol.o \
 	ext-image-capture-source-v1-protocol.o vwl-vout-image-capture-source-unstable-v1-protocol.o
 
@@ -62,11 +62,12 @@ vwlctl: vwlctl.o util.o
 vwlctl.o: vwlctl.c ipc.h util.h
 	$(CC) $(CPPFLAGS) $(TOOLCFLAGS) -o $@ -c $<
 
-check: tests/layout-test tests/floating-test tests/dialogs-test tests/output-rules-test tests/hit-test tests/physical-test tests/fullscreen-test tests/workspaces-test tests/idle-inhibit-test tests/capture-test tests/cursor-test
+check: tests/layout-test tests/floating-test tests/dialogs-test tests/output-rules-test tests/output-destroy-test tests/hit-test tests/physical-test tests/fullscreen-test tests/workspaces-test tests/idle-inhibit-test tests/capture-test tests/cursor-test
 	./tests/layout-test
 	./tests/floating-test
 	./tests/dialogs-test
 	./tests/output-rules-test
+	./tests/output-destroy-test
 	./tests/fullscreen-test
 	./tests/workspaces-test
 	./tests/idle-inhibit-test
@@ -75,7 +76,7 @@ check: tests/layout-test tests/floating-test tests/dialogs-test tests/output-rul
 	./tests/physical-test
 	./tests/hit-test
 
-tests/layout.o tests/floating.o tests/dialogs.o tests/fullscreen.o tests/workspaces.o tests/idle-inhibit.o tests/capture.o tests/cursor.o: tests/compositor.h
+tests/layout.o tests/floating.o tests/dialogs.o tests/output-destroy.o tests/fullscreen.o tests/workspaces.o tests/idle-inhibit.o tests/capture.o tests/cursor.o: tests/compositor.h
 
 tests/output-rules-test: tests/output-rules.o $(VWL_OBJS)
 	$(CC) tests/output-rules.o $(filter-out vwl.o output.o,$(VWL_OBJS)) $(LDFLAGS) $(LDLIBS) -o $@
@@ -93,7 +94,7 @@ tests/cursor-test: tests/cursor.o $(VWL_OBJS)
 	$(CC) tests/cursor.o $(filter-out vwl.o,$(VWL_OBJS)) $(LDFLAGS) $(LDLIBS) -o $@
 tests/cursor.o: tests/cursor.c vwl.o
 
-APP_TESTS = layout floating dialogs fullscreen workspaces idle-inhibit
+APP_TESTS = layout floating dialogs output-destroy fullscreen workspaces idle-inhibit
 APP_CLIENT_OBJS = tests/fullscreen-client.o tests/xdg-shell-client-protocol.o tests/idle-inhibit-client-protocol.o
 $(APP_TESTS:%=tests/%-test): tests/%-test: tests/%.o $(APP_CLIENT_OBJS) $(VWL_OBJS)
 	$(CC) tests/$*.o $(APP_CLIENT_OBJS) $(filter-out vwl.o,$(VWL_OBJS)) \
@@ -186,7 +187,7 @@ update-loc:
 
 clean:
 	rm -f vwl vwlctl *.o *-protocol.h *-protocol.c
-	rm -f tests/layout-test tests/floating-test tests/dialogs-test tests/output-rules-test tests/fullscreen-test tests/workspaces-test tests/idle-inhibit-test tests/capture-test tests/cursor-test tests/physical-test tests/hit-test tests/*.o tests/*-protocol.h tests/*-protocol.c
+	rm -f tests/layout-test tests/floating-test tests/dialogs-test tests/output-rules-test tests/output-destroy-test tests/fullscreen-test tests/workspaces-test tests/idle-inhibit-test tests/capture-test tests/cursor-test tests/physical-test tests/hit-test tests/*.o tests/*-protocol.h tests/*-protocol.c
 
 dist: clean
 	mkdir -p vwl-$(VERSION)

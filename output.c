@@ -41,6 +41,11 @@ cleanupmon(struct wl_listener *listener, void *data)
 	LayerSurface *l, *tmp;
 	size_t i;
 
+	/* Layer teardown and layout removal can rearrange windows. Remove the
+	 * scene output first so hidden tabs cannot enter a dying output while
+	 * its destroy signal is already being emitted. */
+	wlr_scene_output_destroy(m->scene_output);
+
 	/* m->layers[i] are intentionally not unlinked */
 	for (i = 0; i < LENGTH(m->layers); i++) {
 		wl_list_for_each_safe(l, tmp, &m->layers[i], link) wlr_layer_surface_v1_destroy(l->layer_surface);
@@ -54,7 +59,6 @@ cleanupmon(struct wl_listener *listener, void *data)
 		destroylocksurface(&m->destroy_lock_surface, NULL);
 	m->wlr_output->data = NULL;
 	wlr_output_layout_remove(output_layout, m->wlr_output);
-	wlr_scene_output_destroy(m->scene_output);
 
 	closemon(m);
 	wlr_scene_node_destroy(&m->fullscreen_bg->node);

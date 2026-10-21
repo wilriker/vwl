@@ -9,6 +9,7 @@ vwlctl
 /tests/idle-inhibit-test
 /tests/capture-test
 /tests/output-rules-test
+/tests/output-destroy-test
 /tests/hit-test
 /tests/physical-test
 /tests/cursor-test
